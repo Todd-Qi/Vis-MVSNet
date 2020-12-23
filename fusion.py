@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import open3d as o3d
 import os
+os.environ["CUDA_VISIBLE_DEVICES"]='3'
 
 from data.depth2pcd import get_val_loader
 from core.homography import get_pixel_grids
@@ -158,4 +159,11 @@ if __name__ == '__main__':
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(p_all)
     pcd.colors = o3d.utility.Vector3dVector(c_all)
-    o3d.io.write_point_cloud(os.path.join(args.data, f'all_torch.ply'), pcd)
+    o3d.io.write_point_cloud(os.path.join(args.data, f'final3d_model.ply'), pcd)
+
+    # # move the point cloud to parent folder
+    # source_ply = os.path.join(args.data, f'final3d_model.ply')
+    # target_ply = ""
+    #
+
+

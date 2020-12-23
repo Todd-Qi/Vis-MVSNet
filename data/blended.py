@@ -39,6 +39,7 @@ class Blended(data.Dataset):
         super().__init__()
         self.root = root
         self.num_src = num_src
+        print("list_file: {}".format(root))
         with open(os.path.join(root, list_file)) as f:
             self.scene_list = [line.strip() for line in f.readlines()]
         self.pair_list = [
@@ -143,7 +144,7 @@ def train_preproc(sample, preproc_args):
 
 def get_train_loader(root, num_src, total_steps, batch_size, preproc_args, num_workers=0):
     dataset = Blended(
-        root, 'training_list.txt', num_src,
+        root, 'lists/training_list.txt', num_src,
         read=lambda filenames: read(filenames, preproc_args['max_d'], preproc_args['interval_scale']),
         transforms=[lambda sample: train_preproc(sample, preproc_args)]
     )
@@ -176,9 +177,13 @@ def val_preproc(sample, preproc_args):
 
 def get_val_loader(root, num_src, preproc_args):
     dataset = Blended(
-        root, 'validation_list.txt', num_src,
+        root, 'lists/validation_list.txt', num_src,
         read=lambda filenames: read(filenames, preproc_args['max_d'], preproc_args['interval_scale']),
         transforms=[lambda sample: val_preproc(sample, preproc_args)]
     )
     loader = data.DataLoader(dataset, 1, collate_fn=dict_collate, shuffle=False)
     return dataset, loader
+
+if __name__ == "__main__":
+    # some test code
+    pass

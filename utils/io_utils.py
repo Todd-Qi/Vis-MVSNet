@@ -64,6 +64,52 @@ def load_cam(file: str, max_d, interval_scale=1):
 
     return cam
 
+def load_cam_eth3d(file: str, max_d, interval_scale=1):
+    """ read camera txt file """
+    cam = np.zeros((2, 4, 4))
+    with open(file) as f:
+        words = f.read().split()
+    # read extrinsic
+    for i in range(0, 4):
+        for j in range(0, 4):
+            extrinsic_index = 4 * i + j + 1
+            cam[0][i][j] = words[extrinsic_index]
+
+    # read intrinsic
+    for i in range(0, 3):
+        for j in range(0, 3):
+            intrinsic_index = 3 * i + j + 18
+            cam[1][i][j] = words[intrinsic_index]
+
+    # if len(words) == 29:
+    #     cam[1][3][0] = words[27]
+    #     cam[1][3][1] = float(words[28]) * interval_scale
+    #     cam[1][3][2] = max_d
+    #     cam[1][3][3] = cam[1][3][0] + cam[1][3][1] * (cam[1][3][2] - 1)
+    # elif len(words) == 30:
+    #     cam[1][3][0] = words[27]
+    #     cam[1][3][1] = float(words[28]) * interval_scale
+    #     cam[1][3][2] = words[29]
+    #     cam[1][3][3] = cam[1][3][0] + cam[1][3][1] * (cam[1][3][2] - 1)
+    # elif len(words) == 31:
+    #     cam[1][3][0] = words[27]
+    #     cam[1][3][1] = float(words[28]) * interval_scale
+    #     cam[1][3][2] = words[29]
+    #     cam[1][3][3] = words[30]
+    # else:
+    #     cam[1][3][0] = 0
+    #     cam[1][3][1] = 0
+    #     cam[1][3][2] = 0
+    #     cam[1][3][3] = 0
+    assert len(words) == 31, "Hi, pls check the cam file"
+    min_depth = float(words[27]) * 0.40
+    max_depth = float(words[30]) * 1.35
+    cam[1][3][0] = min_depth
+    cam[1][3][1] = (max_depth - min_depth) / (max_d - 1)
+    cam[1][3][2] = max_d
+    cam[1][3][3] = max_depth
+
+    return cam
 
 def cam_adjust_max_d(cam, max_d):
     cam = cam.copy()

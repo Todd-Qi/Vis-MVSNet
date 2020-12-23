@@ -7,6 +7,8 @@ import sys
 import importlib
 sys.path.append('.')
 
+os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -20,7 +22,7 @@ from apex import parallel as apex_parallel
 # from core.model_cas import Model, Loss
 from utils.io_utils import load_model, save_model
 from utils.preproc import recursive_apply
-from utils.utils import NanError
+from utils.utils import NanError, print_args
 
 
 parser = argparse.ArgumentParser()
@@ -61,6 +63,7 @@ parser.add_argument('--snapshot', type=int, default=5000, help='Step interval to
 parser.add_argument('--max_keep', type=int, default=1000, help='Max number of checkpoints kept.')
 
 args = parser.parse_args()
+print_args(args)
 
 if __name__ == '__main__':
     torch.backends.cudnn.benchmark = True
@@ -83,6 +86,7 @@ if __name__ == '__main__':
     Loss = importlib.import_module(f'core.{args.model_name}').Loss
     get_train_loader = importlib.import_module(f'data.{args.dataset_name}').get_train_loader
 
+    args.data_root = "/mnt/B/qiyh/BlendedMVS/low_res/"
     dataset, loader = get_train_loader(
         args.data_root, args.num_src, total_steps, args.batch_size,
         {
@@ -104,7 +108,7 @@ if __name__ == '__main__':
 
     model = nn.DataParallel(model)
 
-    if args.load_path is None:
+    if args.load_path is None: # train model from scratch
         for m in model.modules():
             if any([isinstance(m, T) for T in [nn.Conv2d, nn.Conv3d, nn.ConvTranspose2d, nn.ConvTranspose3d]]):
                 if m.weight.requires_grad:
@@ -113,7 +117,7 @@ if __name__ == '__main__':
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
         global_step = 0
-    else:
+    else: # load ckpt
         global_step = load_model(model, args.load_path, args.load_step)
         if args.reset_step: global_step = 0
         print(f'load {os.path.join(args.load_path, str(args.load_step))}')

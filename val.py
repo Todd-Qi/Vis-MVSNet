@@ -1,5 +1,6 @@
 import argparse
 import os
+os.environ["CUDA_VISIBLE_DEVICES"]='3'
 import sys
 import json
 import importlib
@@ -19,7 +20,7 @@ import matplotlib.pyplot as plt
 from utils.preproc import to_channel_first, resize, random_crop, recursive_apply, image_net_center_inv
 # import data.dtu as dtu, data.sceneflow as sf, data.blended as bld
 from utils.io_utils import load_model, subplot_map, write_pfm
-
+from utils.utils import print_args
 
 parser = argparse.ArgumentParser()
 
@@ -46,6 +47,7 @@ parser.add_argument('--write_result', action='store_true', default=False, help='
 parser.add_argument('--result_dir', type=str, help='The dir to save the results.')
 
 args = parser.parse_args()
+print_args(args)
 
 if __name__ == '__main__':
     torch.backends.cudnn.benchmark = True
@@ -58,6 +60,7 @@ if __name__ == '__main__':
     Loss = importlib.import_module(f'core.{args.model_name}').Loss
     get_val_loader = importlib.import_module(f'data.{args.dataset_name}').get_val_loader
 
+    args.data_root = "/mnt/B/qiyh/BlendedMVS/low_res/"
     dataset, loader = get_val_loader(
         args.data_root, args.num_src,
         {
@@ -87,6 +90,7 @@ if __name__ == '__main__':
 
     pbar = tqdm.tqdm(enumerate(loader), dynamic_ncols=True, total=len(loader))
     # pbar = itertools.product(range(num_scan), range(num_ref), range(num_view))
+    print("loss/xxx/l1") #for tqdm progress bar
     for i, sample in pbar:
         if sample.get('skip') is not None and np.any(sample['skip']): continue
 

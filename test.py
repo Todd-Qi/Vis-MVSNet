@@ -1,6 +1,6 @@
 import argparse
 import os
-#os.environ['SCAN'] = '0'
+#os.environ["CUDA_VISIBLE_DEVICES"]="3"
 import shutil
 import sys
 import json
@@ -21,13 +21,14 @@ import matplotlib.pyplot as plt
 from utils.preproc import to_channel_first, resize, random_crop, recursive_apply, image_net_center_inv, scale_camera
 # from data.tnt_training import get_val_loader
 from utils.io_utils import load_model, subplot_map, write_cam, write_pfm
-
+from utils.utils import print_args
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--data_root', type=str, help='The root dir of the data.')
 parser.add_argument('--dataset_name', type=str, default='tanksandtemples', help='The name of the dataset. Should be identical to the dataloader source file. e.g. blended refers to data/blended.py.')
 parser.add_argument('--model_name', type=str, default='model_cas', help='The name of the model. Should be identical to the model source file. e.g. model_cas refers to core/model_cas.py.')
+parser.add_argument("--subset", type=str, default='', help='The subset of the dataset')
 
 parser.add_argument('--num_src', type=int, default=7, help='The number of source views.')
 parser.add_argument('--max_d', type=int, default=256, help='The standard max depth number.')
@@ -48,6 +49,14 @@ parser.add_argument('--write_result', action='store_true', default=False, help='
 parser.add_argument('--result_dir', type=str, help='The dir to save the results.')
 
 args = parser.parse_args()
+print_args(args)
+
+if not os.path.exists(args.result_dir):
+    os.makedirs(args.result_dir)
+
+scene = str(args.result_dir.split('/')[-1])
+print("processing scene: {}".format(scene))
+os.environ['SCENE'] = scene
 
 if __name__ == '__main__':
     torch.backends.cudnn.benchmark = True
@@ -59,9 +68,11 @@ if __name__ == '__main__':
     Model = importlib.import_module(f'core.{args.model_name}').Model
     Loss = importlib.import_module(f'core.{args.model_name}').Loss
     get_val_loader = importlib.import_module(f'data.{args.dataset_name}').get_val_loader
+    # print(get_val_loader)
+    # print("*"*20)
 
     dataset, loader = get_val_loader(
-        args.data_root, args.num_src,
+        args.data_root, args.num_src, args.subset,
         {
             'interval_scale': args.interval_scale,
             'max_d': args.max_d,

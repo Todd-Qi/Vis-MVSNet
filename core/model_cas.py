@@ -293,6 +293,9 @@ class SingleStage(nn.Module):
         ref_feat, ref_cam, srcs_feat, srcs_cam = sample
         depth_start = ref_cam[:, 1:2, 3:4, 0:1] if depth_start_override is None else depth_start_override  # n111 or n1hw
         depth_interval = ref_cam[:, 1:2, 3:4, 1:2] if depth_interval_override is None else depth_interval_override  # n111
+        # depth_interval = (ref_cam[:, 1:2, 3:4, 3:4] - ref_cam[:, 1:2, 3:4, 0:1])/255.0 if depth_interval_override is None else depth_interval_override  # n111
+        # print("depth_start: {}".format(depth_start))
+        # print("depth_interval: {}".format(depth_interval))
 
         upsample_scale = 1
         d_scale = 1
@@ -434,7 +437,7 @@ class Model(nn.Module):
         return [[est_depth_1, pair_results_1], [est_depth_2, pair_results_2], [est_depth_3, pair_results_3]], refined_depth, [prob_map_1_up, prob_map_2_up, prob_map_3]
 
 
-class Loss(nn.Module):  # TODO
+class Loss(nn.Module):  # TODOS
 
     def __init__(self):
         super(Loss, self).__init__()
